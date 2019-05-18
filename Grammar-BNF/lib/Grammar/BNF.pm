@@ -13,7 +13,7 @@ grammar Grammar::BNF {
     }
 
     token rule {
-        <opt-ws> '<' <rule-name> '>' <opt-ws> '::=' <opt-ws> <expression> <line-end>
+        <opt-ws> <rule-name> <opt-ws> '::=' <opt-ws> <expression> <line-end>
     }
 
     token opt-ws {
@@ -26,7 +26,7 @@ grammar Grammar::BNF {
         # diverge on what is a legal rule name but most expectations are
         # covered by legal Perl 6 identifiers.  Care should be taken to
         # shield from evaluation of metacharacters on a Perl 6 level.
-        [ <[\w\-\'\s\:\/]> ]+
+        '<' [ <[\w\-\'\s\:\/]> ]+ '>'
     }
 
     token expression {
@@ -42,7 +42,11 @@ grammar Grammar::BNF {
     }
 
     token term {
-        <literal> | '<' <rule-name> '>'
+        <rule-name> || <option> | <literal>
+    }
+
+    token option {
+        "[" <opt-ws> <expression> <opt-ws> "]"
     }
 
     token literal {
