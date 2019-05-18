@@ -1,6 +1,56 @@
 use lib 'Grammar-BNF';
 
-use Grammar::BNF;
+grammar Grammar::BNF {
+    token TOP {
+        \s* <rule>+ \s*
+    }
+
+    # Apparently when used for slang we need a lowercase top rule?
+    token main_syntax {
+        <TOP>
+    }
+
+    token rule {
+        <opt-ws> <rule-name> <opt-ws> '::=' <opt-ws> <expression> <line-end>
+    }
+
+    token opt-ws {
+        \h*
+    }
+
+    token rule-name {
+        # If we want something other than legal perl 6 identifiers,
+        # we would have to implement a FALLBACK.  BNF "specifications"
+        # diverge on what is a legal rule name but most expectations are
+        # covered by legal Perl 6 identifiers.  Care should be taken to
+        # shield from evaluation of metacharacters on a Perl 6 level.
+        '<' [ <[\w\-\'\s\:\/]> ]+ '>'
+    }
+
+    token expression {
+        <list> +% [\s* '|' <opt-ws>]
+    }
+
+    token line-end {
+        [ <opt-ws> \n ]+
+    }
+
+    token list {
+        <term> +% <opt-ws>
+    }
+
+    token term {
+        <rule-name> || <option> | <literal>
+    }
+
+    token option {
+        "[" <opt-ws> <expression> <opt-ws> "]"
+    }
+
+    token literal {
+        '"' <-["]>* '"' | "'" <-[']>* "'" | \S+
+    }
+}
 
 class Grammar::BNF::To::Perl6 {
     has $.name;
