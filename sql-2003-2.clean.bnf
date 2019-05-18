@@ -32,7 +32,7 @@
 <right bracket trigraph> ::= ??)
 <circumflex> ::= ^
 <underscore> ::= _
-<vertical bar> ::= |
+<vertical bar> ::= "|"
 <left brace> ::= {
 <right brace> ::= }
 <token> ::= <nondelimiter token> | <delimiter token>
