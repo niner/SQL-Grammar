@@ -97,15 +97,15 @@ grammar Grammar::ABNF is Grammar::ABNF::Core {
 
     # This is not in the RFC but helps keep things DRY
     token name {
-        :i (<+alpha><+alnum +[-]>+)
+        :i (<+alpha><+alnum +[-\h\'\:\/]>+)
     }
 
     token rulename {
-        [ '<' <name> '>' ] | <name>
+        '<' <name> '>'
     }
 
     token defined-as {
-        <.c-wsp>* ("=" | "=/") <.c-wsp>*
+        <.c-wsp>* ("::=" | "=" | "=/") <.c-wsp>*
     }
 
     token elements {
@@ -128,22 +128,24 @@ grammar Grammar::ABNF is Grammar::ABNF::Core {
     }
 
     regex alternation {
-        <concatenation>+ % [ <.c-wsp>* "/" <.c-wsp>* ]
+        <concatenation>+ % [ <.c-wsp>* "|" <.c-wsp>* ]
     }
 
     regex concatenation {
-        <repetition>+ % <.c-wsp>+
+        <repetition>+ % <.c-wsp>*
     }
 
     regex repetition {
-        <repeat>? <element>
+#        <repeat>? <element>
+        <element><repeat>?
     }
 
     token repeat {
-        [$<min>=[<.DIGIT>+]]? [$<star>='*']? [$<max>=[<.DIGIT>+]]? {
-            X::Syntax::Regex::MalformedRange.new.throw
-                if ($/<min> // 0) > ($/<max> // Inf);
-        }
+        #[$<min>=[<.DIGIT>+]]? [$<star>='*']? [$<max>=[<.DIGIT>+]]? {
+        #    X::Syntax::Regex::MalformedRange.new.throw
+        #        if ($/<min> // 0) > ($/<max> // Inf);
+        #}
+        '...'
     }
 
     token element {
@@ -151,7 +153,7 @@ grammar Grammar::ABNF is Grammar::ABNF::Core {
     }
 
     token group {
-        "(" <.c-wsp>* <alternation> <.c-wsp>* ")"
+        '{' <.c-wsp>* <alternation> <.c-wsp>* '}'
     }
 
     token option {
@@ -159,7 +161,8 @@ grammar Grammar::ABNF is Grammar::ABNF::Core {
     }
 
     token char-val {
-        <.DQUOTE> (<[\x20..\x21] + [\x23..\x7E]>*) <.DQUOTE>
+        #<.DQUOTE> (<[\x20..\x21] + [\x23..\x7E]>*) <.DQUOTE>
+        '"' (<-["]>*) '"' | "'" (<-[']>*) "'" | (<-[\s\|\[\]\<\>]>+)
     }
 
     token num-val {
@@ -252,19 +255,27 @@ grammar Grammar::ABNF is Grammar::ABNF::Core {
 my class ABNF-Actions {
 
     my sub guts($/) {
+        note "grammar $*name \{\n";
+
         use MONKEY-SEE-NO-EVAL;
         # Note: $*name can come from .parse above or from Slang::BNF
         my $grmr := Metamodel::GrammarHOW.new_type(:name($*name));
+        note 'token { <' ~ @*ruleorder[0] ~ '> }';
         my $top = EVAL 'token { <' ~ @*ruleorder[0] ~ '> }';
         $top.set_name('TOP'); # There are two name slots IIRC.
         $grmr.^add_method('TOP', $top);
-        for %*rules.pairs -> $rule {
-            my $r = EVAL 'token { ' ~ $rule.value ~ ' }';
-            $r.set_name($rule.key);
-            $grmr.^add_method($rule.key, $r);
+        for @*ruleorder -> $rule-name {
+            my $rule = %*rules{$rule-name};
+            note "token $rule-name \{ $rule \}";
+            my $r = EVAL 'token { ' ~ $rule ~ ' }';
+            $r.set_name($rule-name);
+            $grmr.^add_method($rule-name, $r);
         }
 	$grmr.^add_method("FALLBACK", Grammar::ABNF.^find_method('FALLBACK'));
         $grmr.^compose;
+
+        note "\}";
+
         make $grmr;
     }
 
@@ -298,8 +309,9 @@ my class ABNF-Actions {
         $n = $n.lc;
         # Try to paper over the fact that perl6 rulenames cannot contain
         # a hyphen followed by a decimal or at the end.
-        $n = $n.split(/ \- <.before [ \d | $ ]> /).join("_");
-        make $n;
+        make $<name>.Str.subst(/\W/, '_', :g)
+        #$n = $n.split(/ \- <.before [ \d | $ ]> /).join("_");
+        #make $n;
     }
 
     method alternation($/) {
@@ -311,17 +323,12 @@ my class ABNF-Actions {
     }
 
     method repetition($/) {
-        make $/<element>.made unless $/<repeat>.defined;
-        my $repeat = '';
-	if $/<repeat><star> {
-            my $min = $/<repeat><min> // 0;
-            my $max = $/<repeat><max> // '*';
-	    $repeat = '**' ~ $min ~ ".." ~ $max;
-	}
-	elsif $/<repeat><min> {
-            $repeat ~= '**' ~ $/<repeat><min>;
-	}
-        make "[[ " ~ $/<element>.made ~ " ]" ~ "$repeat ]";
+        if $/<repeat>.defined {
+            make "[[ " ~ $/<element>.made ~ " ]* ]";
+        }
+        else {
+            make $/<element>.made;
+        }
     }
 
     method element($/) {
@@ -359,12 +366,13 @@ my class ABNF-Actions {
         # would cause trouble here.  Really we need to use the encoding
         # of the source and re-encode it.  But it will be 8-bit for most uses,
         # so deal with it later.
-        make "[ " ~
-             (~$/[0].comb.map({ "<[" ~
-                                ($_.uc,$_.lc).map({$_.ords}).fmt('\x%x', ' ')
-                                ~ "]>"
-                              }).join)
-              ~ " ]";
+#        make "[ " ~
+#             (~$/[0].comb.map({ "<[" ~
+#                                ($_.uc,$_.lc).map({$_.ords}).fmt('\x%x', ' ')
+#                                ~ "]>"
+#                              }).join)
+#              ~ " ]";
+        make $/[0] eq "'" ?? $/.Str !! "'" ~ ($/[0] // $/[1] // $/[2]) ~ "'";
     }
 
     method num-val($/) {
@@ -413,7 +421,7 @@ my class ABNF-Actions {
 # Makes the slang version awesome by softening CRLF to match surrounding code
 # Maybe allow mixing in perl-style comments in the future
 grammar Grammar::ABNF::Slang is Grammar::ABNF {
-    rule CRLF { \n | $ }
+    rule CRLF { \n }
 }
 # And we need this to be named precisely this, I think (?)
 class Grammar::ABNF::Slang-actions is ABNF-Actions { }
