@@ -157,6 +157,7 @@ grammar Grammar::ABNF is Grammar::ABNF::Core {
     }
 
     token option {
+        :my $*in-option = True;
         "[" <.c-wsp>* <alternation> <.c-wsp>* "]"
     }
 
@@ -201,6 +202,7 @@ grammar Grammar::ABNF is Grammar::ABNF::Core {
         my @*ruleorder;
         my $*indent;
         my $*name = c<name> // 'ABNF-Grammar';
+        my $*in-option = False;
         my %hmod = c.hash;
         %hmod<name>:delete;
         %hmod<actions> = ABNF-Actions unless %hmod<actions>:exists;
@@ -324,7 +326,7 @@ my class ABNF-Actions {
 
     method repetition($/) {
         if $/<repeat>.defined {
-            make "[[ " ~ $/<element>.made ~ " ]* ]";
+            make "[[ " ~ $/<element>.made ~ " ]{$*in-option ?? '*' !! '+'} ]";
         }
         else {
             make $/<element>.made;
