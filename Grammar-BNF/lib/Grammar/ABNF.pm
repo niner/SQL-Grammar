@@ -162,7 +162,7 @@ grammar Grammar::ABNF is Grammar::ABNF::Core {
 
     token char-val {
         #<.DQUOTE> (<[\x20..\x21] + [\x23..\x7E]>*) <.DQUOTE>
-        '"' (<-["]>*) '"' | "'" (<-[']>*) "'" | (<-[\s\|\[\]\<\>]>+)
+        '"' (<-["]>*) '"' | "'" (<-[']>*) "'" | (<-[\s\|\[\]\<\>\{\}]>+)
     }
 
     token num-val {
