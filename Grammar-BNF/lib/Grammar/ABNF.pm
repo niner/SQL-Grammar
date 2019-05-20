@@ -317,7 +317,7 @@ my class ABNF-Actions {
     }
 
     method alternation($/) {
-        make join(" | ", $/<concatenation>[]».made)
+        make join(" || ", $/<bnf-concatenation>[]».made)
     }
 
     method bnf-concatenation($/) {
