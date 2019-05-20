@@ -378,6 +378,9 @@ my class ABNF-Actions {
 #                                ~ "]>"
 #                              }).join)
 #              ~ " ]";
+        return make '\w' if $/.Str eq '\w';
+        return make '\s' if $/.Str eq '\s';
+        return make '\n' if $/.Str eq '\n';
         make $/[0] eq "'" ?? $/.Str !! "'" ~ ($/[0] // $/[1] // $/[2]) ~ "'";
     }
 
