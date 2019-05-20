@@ -140,6 +140,7 @@
 <table name> ::= <local or schema qualified name>
 <domain name> ::= <schema qualified name>
 <schema name> ::= [ <catalog name> <period> ] <unqualified schema name>
+<unqualified schema name> ::= <identifier>
 <catalog name> ::= <identifier>
 <schema qualified name> ::= [ <schema name> <period> ] <qualified identifier>
 <local or schema qualified name> ::= [ <local or schema qualifier> <period> ] <qualified identifier>
@@ -256,7 +257,7 @@
 <simple when clause> ::= WHEN <when operand> THEN <result>
 <searched when clause> ::= WHEN <search condition> THEN <result>
 <else clause> ::= ELSE <result>
-<case operand> ::= <row value predicand> | <overlaps predicate part>
+<case operand> ::= <row value predicand> | <overlaps predicate>
 <when operand> ::=		<row value predicand>	|	<comparison predicate part 2>	|	<between predicate part 2>	|	<in predicate part 2>	|	<character like predicate part 2>	|	<octet like predicate part 2>	|	<similar predicate part 2>	|	<null predicate part 2>	|	<quantified comparison predicate part 2>	|	<match predicate part 2>	|	<overlaps predicate part 2>	|	<distinct predicate part 2>	|	<member predicate part 2>	|	<submultiset predicate part 2>	|	<set predicate part 2>	|	<type predicate part 2>
 <result> ::= <result expression> | NULL
 <result expression> ::= <value expression>
@@ -283,7 +284,7 @@
 <method reference> ::=		<value expression primary> <dereference operator> <method name> <SQL argument list>
 <reference resolution> ::= DEREF <left paren> <reference value expression> <right paren>
 <array element reference> ::=		<array value expression> <left bracket or trigraph> <numeric value expression> <right bracket or trigraph>
-<multiset element reference> ::=		ELEMENT <left paren> <multset value expression> <right paren>
+<multiset element reference> ::=		ELEMENT <left paren> <multiset value expression> <right paren>
 <value expression> ::=		<common value expression>	|	<boolean value expression>	|	<row value expression>
 <common value expression> ::=		<numeric value expression>	|	<string value expression>	|	<datetime value expression>	|	<interval value expression>	|	<user-defined type value expression>	|	<reference value expression>	|	<collection value expression>
 <user-defined type value expression> ::= <value expression primary>
@@ -308,6 +309,8 @@
 <cardinality expression> ::= CARDINALITY <left paren> <collection value expression> <right paren>
 <absolute value expression> ::= ABS <left paren> <numeric value expression> <right paren>
 <modulus expression> ::= MOD <left paren> <numeric value expression dividend> <comma> <numeric value expression divisor><right paren>
+<numeric value expression dividend> ::= <numeric value expression>
+<numeric value expression divisor> ::= <numeric value expression>
 <natural logarithm> ::= LN <left paren> <numeric value expression> <right paren>
 <exponential function> ::= EXP <left paren> <numeric value expression> <right paren>
 <power function> ::= POWER <left paren> <numeric value expression base> <comma> <numeric value expression exponent> <right paren>
