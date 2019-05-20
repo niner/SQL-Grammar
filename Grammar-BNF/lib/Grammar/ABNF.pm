@@ -302,7 +302,11 @@ my class ABNF-Actions {
         }
         else {
             push @*ruleorder, $rulename;
-	    %*rules{$rulename} = "$ruleval";
+            my $is-rule = (
+                any($/<elements><alternation><bnf-concatenation>)<repetition>.elems != 1
+                or $rulename eq 'identifier_body'
+            );
+	    %*rules{$rulename} = "{$is-rule ?? 'rule' !! 'token'} $rulename \{ $ruleval \}";
         }
     }
 
