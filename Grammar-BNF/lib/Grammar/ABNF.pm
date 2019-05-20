@@ -128,10 +128,10 @@ grammar Grammar::ABNF is Grammar::ABNF::Core {
     }
 
     regex alternation {
-        <concatenation>+ % [ <.c-wsp>* "|" <.c-wsp>* ]
+        <bnf-concatenation>+ % [ <.c-wsp>* "|" <.c-wsp>* ]
     }
 
-    regex concatenation {
+    regex bnf-concatenation {
         <repetition>+ % <.c-wsp>*
     }
 
@@ -318,7 +318,7 @@ my class ABNF-Actions {
         make join(" | ", $/<concatenation>[]».made)
     }
 
-    method concatenation($/) {
+    method bnf-concatenation($/) {
         make join(" ", $/<repetition>[]».made)
     }
 
