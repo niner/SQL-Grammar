@@ -14,7 +14,9 @@
       "Grammar::BNF"  : "lib/Grammar/BNF.pm",
       "Slang::BNF"    : "lib/Slang/BNF.pm",
       "Grammar::ABNF" : "lib/Grammar/ABNF.pm",
-      "Slang::ABNF"    : "lib/Slang/ABNF.pm"
+      "Slang::ABNF"    : "lib/Slang/ABNF.pm",
+      "Grammar::ABNF::GrammarGenerator" : "lib/Grammar/ABNF/GrammarGenerator.pm6",
+      "Grammar::ABNF::ActionsGenerator" : "lib/Grammar/ABNF/ActionsGenerator.pm6"
   },
   "support" : {
     "source" : "https://github.com/tadzik/Grammar-BNF.git"

@@ -1,6 +1,8 @@
 use lib 'Grammar-BNF';
 
 use Grammar::ABNF;
+use Grammar::ABNF::GrammarGenerator;
+use Grammar::ABNF::ActionsGenerator;
 grammar Grammar::BNF {
     token TOP {
         \s* <rule>+ \s*
@@ -95,19 +97,19 @@ class Grammar::BNF::To::Perl6 {
     }
 }
 
-use MONKEY-SEE-NO-EVAL;
-#`{
-my $grammar = Grammar::ABNF::Slang.parse(
-    '<simple Latin upper case letter> ::=		A | B | C',
-    :actions(Grammar::ABNF::Slang-actions.new),
-    :name<SQL::Grammar>,
-).made;
+multi sub MAIN(Bool :$grammar!) {
+    Grammar::ABNF::Slang.parsefile(
+        'sql-2003-2.clean.bnf'.IO,
+        :actions(Grammar::ABNF::GrammarGenerator.new),
+        :name<SQL::Grammar>,
+    ).made.say;
 }
-my $grammar = Grammar::ABNF::Slang.parsefile(
-    'sql-2003-2.clean.bnf'.IO,
-    :actions(Grammar::ABNF::Slang-actions.new),
-    :name<SQL::Grammar>,
-).made;
+multi sub MAIN(Bool :$actions!) {
+    Grammar::ABNF::Slang.parsefile(
+        'sql-2003-2.clean.bnf'.IO,
+        :actions(Grammar::ABNF::ActionsGenerator.new),
+        :name('SQL::Grammar::Actions'),
+    ).made.say;
+}
 #my $grammar = Grammar::ABNF.parsefile('sql-2003-2.clean.bnf'.IO, :actions(Grammar::BNF::To::Perl6.new(:name<SQL::Grammar>))).made;
-say $grammar;
 #EVAL $grammar;
