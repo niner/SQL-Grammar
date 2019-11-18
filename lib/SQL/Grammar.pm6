@@ -1,7 +1,4 @@
-use v6.c;
-
-unit grammar SQL::Grammar:ver<0.0.1>:auth<cpan:nine>;
-
+grammar SQL::Grammar {
 token TOP { <direct_select_statement__multiple_rows> }
 token direct_select_statement__multiple_rows { <cursor_specification> }
 rule cursor_specification { <query_expression> [ <order_by_clause> ]? [ <updatability_clause> ]? }
@@ -10,9 +7,9 @@ rule order_by_clause { 'ORDER' 'BY' <sort_specification_list> }
 rule updatability_clause { 'FOR' [ 'READ' 'ONLY' || 'UPDATE' [ 'OF' <column_name_list> ]? ] }
 rule with_clause { 'WITH' [ 'RECURSIVE' ]? <with_list> }
 token query_expression_body { <non_join_query_expression> || <joined_table> }
-rule sort_specification_list { <sort_specification> [ [[ [ <comma> <sort_specification> ] ]* ] ]? }
-rule column_name_list { <column_name> [ [[ [ <comma> <column_name> ] ]* ] ]? }
-rule with_list { <with_list_element> [ [[ [ <comma> <with_list_element> ] ]* ] ]? }
+rule sort_specification_list { <sort_specification>+ % <comma> }
+rule column_name_list { <column_name>+ % <comma> }
+rule with_list { <with_list_element>+ % <comma> }
 token non_join_query_expression { <non_join_query_term> || <query_expression_body> 'UNION' [ 'ALL' || 'DISTINCT' ]? [ <corresponding_spec> ]? <query_term> || <query_expression_body> 'EXCEPT' [ 'ALL' || 'DISTINCT' ]? [ <corresponding_spec> ]? <query_term> }
 token joined_table { <cross_join> || <qualified_join> || <natural_join> || <union_join> }
 rule sort_specification { <sort_key> [ <ordering_specification> ]? [ <null_ordering> ]? }
@@ -67,7 +64,7 @@ token regular_identifier { <identifier_body> }
 rule delimited_identifier { <double_quote> <delimited_identifier_body> <double_quote> }
 rule recursive_search_order { 'DEPTH' 'FIRST' 'BY' <sort_specification_list> || 'BREADTH' 'FIRST' 'BY' <sort_specification_list> }
 token sequence_column { <column_name> }
-rule cycle_column_list { <cycle_column> [ [[ [ <comma> <cycle_column> ] ]* ] ]? }
+rule cycle_column_list { <cycle_column>+ % <comma> }
 token cycle_mark_column { <column_name> }
 token cycle_mark_value { <value_expression> }
 token non_cycle_mark_value { <value_expression> }
@@ -92,14 +89,14 @@ token reference_value_expression { <value_expression_primary> }
 token boolean_term { <boolean_factor> || <boolean_term> 'AND' <boolean_factor> }
 token row_value_special_case { <nonparenthesized_value_expression_primary> }
 token explicit_row_value_constructor { <left_paren> <row_value_constructor_element> <comma> <row_value_constructor_element_list> <right_paren> || 'ROW' <left_paren> <row_value_constructor_element_list> <right_paren> || <row_subquery> }
-token identifier_body { <identifier_start> [ [[ <identifier_part> ]* ] ]? }
+token identifier_body { <identifier_start> [ <identifier_part> ]* }
 token double_quote { '"' }
-token delimited_identifier_body { [[ <delimited_identifier_part> ]+ ] }
+token delimited_identifier_body { [ <delimited_identifier_part> ]+ }
 token cycle_column { <column_name> }
 token set_quantifier { 'DISTINCT' || 'ALL' }
-token select_list { <asterisk> || <select_sublist> [ [[ [ <comma> <select_sublist> ] ]* ] ]? }
+token select_list { <asterisk> || <select_sublist>+ % <comma> }
 rule table_expression { <from_clause> [ <where_clause> ]? [ <group_by_clause> ]? [ <having_clause> ]? [ <window_clause> ]? }
-rule row_value_expression_list { <table_row_value_expression> [ [[ [ <comma> <table_row_value_expression> ] ]* ] ]? }
+rule row_value_expression_list { <table_row_value_expression>+ % <comma> }
 token repeat_argument { <numeric_value_expression> }
 rule local_or_schema_qualified_name { [ <local_or_schema_qualifier> <period> ]? <qualified_identifier> }
 rule subquery { <left_paren> <query_expression> <right_paren> }
@@ -119,7 +116,7 @@ token value_expression_primary { <parenthesized_value_expression> || <nonparenth
 rule boolean_factor { [ 'NOT' ]? <boolean_test> }
 token nonparenthesized_value_expression_primary { <unsigned_value_specification> || <column_reference> || <set_function_specification> || <window_function> || <scalar_subquery> || <case_expression> || <cast_specification> || <field_reference> || <subtype_treatment> || <method_invocation> || <static_method_invocation> || <new_specification> || <attribute_or_method_reference> || <reference_resolution> || <collection_value_constructor> || <array_element_reference> || <multiset_element_reference> || <routine_invocation> || <next_value_expression> }
 token row_value_constructor_element { <value_expression> }
-rule row_value_constructor_element_list { <row_value_constructor_element> [ [[ [ <comma> <row_value_constructor_element> ] ]* ] ]? }
+rule row_value_constructor_element_list { <row_value_constructor_element>+ % <comma> }
 token row_subquery { <subquery> }
 token identifier_start { \w }
 token identifier_part { <identifier_start> || <identifier_extend> }
@@ -176,9 +173,9 @@ token nondoublequote_character { \w }
 rule doublequote_symbol { <double_quote> <double_quote> }
 rule derived_column { <value_expression> [ <as_clause> ]? }
 token qualified_asterisk { <asterisked_identifier_chain> <period> <asterisk> || <all_fields_reference> }
-rule table_reference_list { <table_reference> [ [[ [ <comma> <table_reference> ] ]* ] ]? }
-rule grouping_element_list { <grouping_element> [ [[ [ <comma> <grouping_element> ] ]* ] ]? }
-rule window_definition_list { <window_definition> [ [[ [ <comma> <window_definition> ] ]* ] ]? }
+rule table_reference_list { <table_reference>+ % <comma> }
+rule grouping_element_list { <grouping_element>+ % <comma> }
+rule window_definition_list { <window_definition>+ % <comma> }
 token row_value_constructor { <common_value_expression> || <boolean_value_expression> || <explicit_row_value_constructor> }
 rule schema_name { [ <catalog_name> <period> ]? <unqualified_schema_name> }
 token array_value_expression_1 { <array_value_expression> }
@@ -201,10 +198,10 @@ token unsigned_literal { <unsigned_numeric_literal> || <general_literal> }
 token general_value_specification { <host_parameter_specification> || <SQL_parameter_reference> || <dynamic_parameter_specification> || <embedded_variable_specification> || <current_collation_specification> || 'CURRENT_DEFAULT_TRANSFORM_GROUP' || 'CURRENT_PATH' || 'CURRENT_ROLE' || 'CURRENT_TRANSFORM_GROUP_FOR_TYPE' <path_resolved_user_defined_type_name> || 'CURRENT_USER' || 'SESSION_USER' || 'SYSTEM_USER' || 'USER' || 'VALUE' }
 token basic_identifier_chain { <identifier_chain> }
 rule aggregate_function { 'COUNT' <left_paren> <asterisk> <right_paren> [ <filter_clause> ]? || <general_set_function> [ <filter_clause> ]? || <binary_set_function> [ <filter_clause> ]? || <ordered_set_function> [ <filter_clause> ]? }
-rule grouping_operation { 'GROUPING' <left_paren> <column_reference> [ [[ [ <comma> <column_reference> ] ]* ] ]? <right_paren> }
+rule grouping_operation { 'GROUPING' <left_paren> <column_reference>+ % <comma> <right_paren> }
 token window_function_type { <rank_function_type> <left_paren> <right_paren> || 'ROW_NUMBER' <left_paren> <right_paren> || <aggregate_function> }
 token window_name_or_specification { <window_name> || <in_line_window_specification> }
-rule case_abbreviation { 'NULLIF' <left_paren> <value_expression> <comma> <value_expression> <right_paren> || 'COALESCE' <left_paren> <value_expression> [[ [ <comma> <value_expression> ] ]+ ] <right_paren> }
+rule case_abbreviation { 'NULLIF' <left_paren> <value_expression> <comma> <value_expression> <right_paren> || 'COALESCE' <left_paren> <value_expression> [ [ <comma> <value_expression> ] ]+ <right_paren> }
 token case_specification { <simple_case> || <searched_case> }
 token cast_operand { <value_expression> || <implicitly_typed_value_specification> }
 token cast_target { <domain_name> || <data_type> }
@@ -216,7 +213,7 @@ rule generalized_invocation { <left_paren> <value_expression_primary> 'AS' <data
 token path_resolved_user_defined_type_name { <user_defined_type_name> }
 rule double_colon { <colon> <colon> }
 token method_name { <identifier> }
-rule SQL_argument_list { <left_paren> [ <SQL_argument> [ [[ [ <comma> <SQL_argument> ] ]* ] ]? ]? <right_paren> }
+rule SQL_argument_list { <left_paren> [ <SQL_argument>+ % <comma> ]? <right_paren> }
 token dereference_operator { <right_arrow> }
 token array_value_constructor { <array_value_constructor_by_enumeration> || <array_value_constructor_by_query> }
 token multiset_value_constructor { <multiset_value_constructor_by_enumeration> || <multiset_value_constructor_by_query> || <table_value_constructor_by_query> }
@@ -225,7 +222,7 @@ token right_bracket_or_trigraph { <right_bracket> || <right_bracket_trigraph> }
 rule routine_name { [ <schema_name> <period> ]? <qualified_identifier> }
 token sequence_generator_name { <schema_qualified_name> }
 rule as_clause { [ 'AS' ]? <column_name> }
-rule asterisked_identifier_chain { <asterisked_identifier> [ [[ [ <period> <asterisked_identifier> ] ]* ] ]? }
+rule asterisked_identifier_chain { <asterisked_identifier>+ % <period> }
 rule all_fields_reference { <value_expression_primary> <period> <asterisk> [ 'AS' <left_paren> <all_fields_column_name_list> <right_paren> ]? }
 token grouping_element { <ordinary_grouping_set> || <rollup_list> || <cube_list> || <grouping_sets_specification> || <empty_grouping_set> }
 rule window_definition { <new_window_name> 'AS' <window_specification> }
@@ -239,7 +236,7 @@ token collation_name { <schema_qualified_name> }
 token datetime_value_function { <current_date_value_function> || <current_time_value_function> || <current_timestamp_value_function> || <current_local_time_value_function> || <current_local_timestamp_value_function> }
 token time_zone_specifier { 'LOCAL' || 'TIME' 'ZONE' <interval_primary> }
 token interval_value_function { <interval_absolute_value_function> }
-token unsigned_integer { [[ <digit> ]+ ] }
+token unsigned_integer { [ <digit> ]+ }
 token predicate { <comparison_predicate> || <between_predicate> || <in_predicate> || <like_predicate> || <similar_predicate> || <null_predicate> || <quantified_comparison_predicate> || <exists_predicate> || <unique_predicate> || <normalized_predicate> || <match_predicate> || <overlaps_predicate> || <distinct_predicate> || <member_predicate> || <submultiset_predicate> || <set_predicate> || <type_predicate> }
 token boolean_predicand { <parenthesized_boolean_value_expression> || <nonparenthesized_value_expression_primary> }
 token unsigned_numeric_literal { <exact_numeric_literal> || <approximate_numeric_literal> }
@@ -249,7 +246,7 @@ token SQL_parameter_reference { <basic_identifier_chain> }
 token dynamic_parameter_specification { <question_mark> }
 rule embedded_variable_specification { <embedded_variable_name> [ <indicator_variable> ]? }
 rule current_collation_specification { 'CURRENT_COLLATION' <left_paren> <string_value_expression> <right_paren> }
-rule identifier_chain { <identifier> [ [[ [ <period> <identifier> ] ]* ] ]? }
+rule identifier_chain { <identifier>+ % <period> }
 rule filter_clause { 'FILTER' <left_paren> 'WHERE' <search_condition> <right_paren> }
 rule general_set_function { <set_function_type> <left_paren> [ <set_quantifier> ]? <value_expression> <right_paren> }
 rule binary_set_function { <binary_set_function_type> <left_paren> <dependent_variable_expression> <comma> <independent_variable_expression> <right_paren> }
@@ -257,8 +254,8 @@ token ordered_set_function { <hypothetical_set_function> || <inverse_distributio
 token rank_function_type { 'RANK' || 'DENSE_RANK' || 'PERCENT_RANK' || 'CUME_DIST' }
 token window_name { <identifier> }
 token in_line_window_specification { <window_specification> }
-rule simple_case { 'CASE' <case_operand> [[ <simple_when_clause> ]+ ] [ <else_clause> ]? 'END' }
-rule searched_case { 'CASE' [[ <searched_when_clause> ]+ ] [ <else_clause> ]? 'END' }
+rule simple_case { 'CASE' <case_operand> [ <simple_when_clause> ]+ [ <else_clause> ]? 'END' }
+rule searched_case { 'CASE' [ <searched_when_clause> ]+ [ <else_clause> ]? 'END' }
 token implicitly_typed_value_specification { <null_specification> || <empty_specification> }
 token domain_name { <schema_qualified_name> }
 token data_type { <predefined_type> || <row_type> || <path_resolved_user_defined_type_name> || <reference_type> || <collection_type> }
@@ -329,10 +326,10 @@ rule type_predicate { <row_value_predicand> <type_predicate_part_2> }
 rule parenthesized_boolean_value_expression { <left_paren> <boolean_value_expression> <right_paren> }
 rule exact_numeric_literal { <unsigned_integer> [ <period> [ <unsigned_integer> ]? ]? || <period> <unsigned_integer> }
 rule approximate_numeric_literal { <mantissa> 'E' <exponent> }
-rule character_string_literal { [ <introducer> <character_set_specification> ]? <quote> [ [[ <character_representation> ]* ] ]? <quote> [ [[ [ <separator> <quote> [ [[ <character_representation> ]* ] ]? <quote> ] ]* ] ]? }
-rule national_character_string_literal { 'N' <quote> [ [[ <character_representation> ]* ] ]? <quote> [ [[ [ <separator> <quote> [ [[ <character_representation> ]* ] ]? <quote> ] ]* ] ]? }
-rule Unicode_character_string_literal { [ <introducer> <character_set_specification> ]? 'U' <ampersand> <quote> [ [[ <Unicode_representation> ]* ] ]? <quote> [ [[ [ <separator> <quote> [ [[ <Unicode_representation> ]* ] ]? <quote> ] ]* ] ]? [ 'ESCAPE' <escape_character> ]? }
-rule binary_string_literal { 'X' <quote> [ [[ [ <hexit> <hexit> ] ]* ] ]? <quote> [ [[ [ <separator> <quote> [ [[ [ <hexit> <hexit> ] ]* ] ]? <quote> ] ]* ] ]? [ 'ESCAPE' <escape_character> ]? }
+rule character_string_literal { [ <introducer> <character_set_specification> ]? <quote> [ <character_representation> ]* <quote> [ [ <separator> <quote> [ <character_representation> ]* <quote> ] ]* }
+rule national_character_string_literal { 'N' <quote> [ <character_representation> ]* <quote> [ [ <separator> <quote> [ <character_representation> ]* <quote> ] ]* }
+rule Unicode_character_string_literal { [ <introducer> <character_set_specification> ]? 'U' <ampersand> <quote> [ <Unicode_representation> ]* <quote> [ [ <separator> <quote> [ <Unicode_representation> ]* <quote> ] ]* [ 'ESCAPE' <escape_character> ]? }
+rule binary_string_literal { 'X' <quote> [ [ <hexit> <hexit> ] ]* <quote> [ [ <separator> <quote> [ [ <hexit> <hexit> ] ]* <quote> ] ]* [ 'ESCAPE' <escape_character> ]? }
 token datetime_literal { <date_literal> || <time_literal> || <timestamp_literal> }
 rule interval_literal { 'INTERVAL' [ <sign> ]? <interval_string> <interval_qualifier> }
 token boolean_literal { 'TRUE' || 'FALSE' || 'UNKNOWN' }
@@ -362,12 +359,12 @@ rule schema_qualified_type_name { [ <schema_name> <period> ]? <qualified_identif
 rule generalized_expression { <value_expression> 'AS' <path_resolved_user_defined_type_name> }
 token target_specification { <host_parameter_specification> || <SQL_parameter_reference> || <column_reference> || <target_array_element_specification> || <dynamic_parameter_specification> || <embedded_variable_specification> }
 token greater_than_operator { '>' }
-rule array_element_list { <array_element> [ [[ [ <comma> <array_element> ] ]* ] ]? }
-rule multiset_element_list { <multiset_element> [ [ <comma> <multiset_element> ] ]? }
+rule array_element_list { <array_element>+ % <comma> }
+rule multiset_element_list { <multiset_element>+ % <comma> }
 rule grouping_column_reference { <column_reference> [ <collate_clause> ]? }
-rule grouping_column_reference_list { <grouping_column_reference> [ [[ [ <comma> <grouping_column_reference> ] ]* ] ]? }
-rule ordinary_grouping_set_list { <ordinary_grouping_set> [ [[ [ <comma> <ordinary_grouping_set> ] ]* ] ]? }
-rule grouping_set_list { <grouping_set> [ [[ [ <comma> <grouping_set> ] ]* ] ]? }
+rule grouping_column_reference_list { <grouping_column_reference>+ % <comma> }
+rule ordinary_grouping_set_list { <ordinary_grouping_set>+ % <comma> }
+rule grouping_set_list { <grouping_set>+ % <comma> }
 rule window_specification_details { [ <existing_window_name> ]? [ <window_partition_clause> ]? [ <window_order_clause> ]? [ <window_frame_clause> ]? }
 rule string_position_expression { 'POSITION' <left_paren> <string_value_expression> 'IN' <string_value_expression> [ 'USING' <char_length_units> ]? <right_paren> }
 rule blob_position_expression { 'POSITION' <left_paren> <blob_value_expression> 'IN' <blob_value_expression> <right_paren> }
@@ -421,7 +418,7 @@ token introducer { <underscore> }
 token character_set_specification { <standard_character_set_name> || <implementation_defined_character_set_name> || <user_defined_character_set_name> }
 token quote { "'" }
 token character_representation { <nonquote_character> || <quote_symbol> }
-token separator { [[ [ <comment> || <white_space> ] ]+ ] }
+token separator { [ [ <comment> || <white_space> ] ]+ }
 token ampersand { '&' }
 token Unicode_representation { <character_representation> || <Unicode_escape_value> }
 token escape_character { <character_value_expression> }
@@ -432,7 +429,7 @@ rule timestamp_literal { 'TIMESTAMP' <timestamp_string> }
 rule interval_string { <quote> <unquoted_interval_string> <quote> }
 token host_identifier { <Ada_host_identifier> || <C_host_identifier> || <COBOL_host_identifier> || <Fortran_host_identifier> || <MUMPS_host_identifier> || <Pascal_host_identifier> || <PL_I_host_identifier> }
 token computational_operation { 'AVG' || 'MAX' || 'MIN' || 'SUM' || 'EVERY' || 'ANY' || 'SOME' || 'COUNT' || 'STDDEV_POP' || 'STDDEV_SAMP' || 'VAR_SAMP' || 'VAR_POP' || 'COLLECT' || 'FUSION' || 'INTERSECTION' }
-rule hypothetical_set_function_value_expression_list { <value_expression> [ [[ [ <comma> <value_expression> ] ]* ] ]? }
+rule hypothetical_set_function_value_expression_list { <value_expression>+ % <comma> }
 rule within_group_specification { 'WITHIN' 'GROUP' <left_paren> 'ORDER' 'BY' <sort_specification_list> <right_paren> }
 token inverse_distribution_function_type { 'PERCENTILE_CONT' || 'PERCENTILE_DISC' }
 token inverse_distribution_function_argument { <numeric_value_expression> }
@@ -445,7 +442,7 @@ token numeric_type { <exact_numeric_type> || <approximate_numeric_type> }
 token boolean_type { 'BOOLEAN' }
 token datetime_type { 'DATE' || 'TIME' [ <left_paren> <time_precision> <right_paren> ]? [ <with_or_without_time_zone> ]? || 'TIMESTAMP' [ <left_paren> <timestamp_precision> <right_paren> ]? [ <with_or_without_time_zone> ]? }
 rule interval_type { 'INTERVAL' <interval_qualifier> }
-rule row_type_body { <left_paren> <field_definition> [ [[ [ <comma> <field_definition> ] ]* ] ]? <right_paren> }
+rule row_type_body { <left_paren> <field_definition>+ % <comma> <right_paren> }
 rule array_type { <data_type> 'ARRAY' [ <left_bracket_or_trigraph> <unsigned_integer> <right_bracket_or_trigraph> ]? }
 rule multiset_type { <data_type> 'MULTISET' }
 rule target_array_element_specification { <target_array_reference> <left_bracket_or_trigraph> <simple_value_specification> <right_bracket_or_trigraph> }
@@ -476,7 +473,7 @@ token quantifier { <all> || <some> }
 token row_value_predicand_1 { <row_value_predicand> }
 token row_value_predicand_2 { <row_value_predicand> }
 token row_value_predicand_4 { <row_value_predicand> }
-rule type_list { <user_defined_type_specification> [ [[ [ <comma> <user_defined_type_specification> ] ]* ] ]? }
+rule type_list { <user_defined_type_specification>+ % <comma> }
 rule signed_integer { [ <sign> ]? <unsigned_integer> }
 token underscore { '_' }
 token standard_character_set_name { <character_set_name> }
@@ -506,7 +503,7 @@ rule with_or_without_time_zone { 'WITH' 'TIME' 'ZONE' || 'WITHOUT' 'TIME' 'ZONE'
 rule field_definition { <field_name> <data_type> [ <reference_scope_check> ]? }
 token target_array_reference { <SQL_parameter_reference> || <column_reference> }
 token simple_value_specification { <literal> || <host_parameter_name> || <SQL_parameter_reference> || <embedded_variable_name> }
-rule window_partition_column_reference_list { <window_partition_column_reference> [ [[ [ <comma> <window_partition_column_reference> ] ]* ] ]? }
+rule window_partition_column_reference_list { <window_partition_column_reference>+ % <comma> }
 token window_frame_units { 'ROWS' || 'RANGE' }
 token window_frame_extent { <window_frame_start> || <window_frame_between> }
 rule window_frame_exclusion { 'EXCLUDE' 'CURRENT' 'ROW' || 'EXCLUDE' 'GROUP' || 'EXCLUDE' 'TIES' || 'EXCLUDE' 'NO' 'OTHERS' }
@@ -520,7 +517,7 @@ rule not_equals_operator { <less_than_operator> <greater_than_operator> }
 token less_than_operator { '<' }
 rule less_than_or_equals_operator { <less_than_operator> <equals_operator> }
 rule greater_than_or_equals_operator { <greater_than_operator> <equals_operator> }
-rule in_value_list { <row_value_expression> [ [[ [ <comma> <row_value_expression> ] ]* ] ]? }
+rule in_value_list { <row_value_expression>+ % <comma> }
 token character_pattern { <character_value_expression> }
 token octet_pattern { <blob_value_expression> }
 token escape_octet { <blob_value_expression> }
@@ -528,7 +525,7 @@ token all { 'ALL' }
 token some { 'SOME' || 'ANY' }
 token user_defined_type_specification { <inclusive_user_defined_type_specification> || <exclusive_user_defined_type_specification> }
 rule character_set_name { [ <schema_name> <period> ]? <SQL_language_identifier> }
-rule simple_comment { <simple_comment_introducer> [ [[ <comment_character> ]* ] ]? <newline> }
+rule simple_comment { <simple_comment_introducer> [ <comment_character> ]* <newline> }
 rule bracketed_comment { <bracketed_comment_introducer> <bracketed_comment_contents> <bracketed_comment_terminator> }
 rule Unicode_4_digit_escape_value { <Unicode_escape_character> <hexit> <hexit> <hexit> <hexit> }
 rule Unicode_6_digit_escape_value { <Unicode_escape_character> <plus_sign> <hexit> <hexit> <hexit> <hexit> <hexit> <hexit> }
@@ -539,7 +536,7 @@ rule unquoted_timestamp_string { <unquoted_date_string> <space> <unquoted_time_s
 token year_month_literal { <years_value> || [ <years_value> <minus_sign> ]? <months_value> }
 token day_time_literal { <day_time_interval> || <time_interval> }
 token multiplier { 'K' || 'M' || 'G' }
-rule large_object_length_token { [[ <digit> ]+ ] <multiplier> }
+rule large_object_length_token { [ <digit> ]+ <multiplier> }
 token precision { <unsigned_integer> }
 token scale { <unsigned_integer> }
 rule reference_scope_check { 'REFERENCES' 'ARE' [ 'NOT' ]? 'CHECKED' [ 'ON' 'DELETE' <reference_scope_check_action> ]? }
@@ -549,12 +546,12 @@ token window_frame_start { 'UNBOUNDED' 'PRECEDING' || <window_frame_preceding> |
 rule window_frame_between { 'BETWEEN' <window_frame_bound_1> 'AND' <window_frame_bound_2> }
 token inclusive_user_defined_type_specification { <path_resolved_user_defined_type_name> }
 rule exclusive_user_defined_type_specification { 'ONLY' <path_resolved_user_defined_type_name> }
-rule SQL_language_identifier { <SQL_language_identifier_start> [ [[ [ <underscore> || <SQL_language_identifier_part> ] ]* ] ]? }
-rule simple_comment_introducer { <minus_sign> <minus_sign> [ [[ <minus_sign> ]* ] ]? }
+rule SQL_language_identifier { <SQL_language_identifier_start> [ [ <underscore> || <SQL_language_identifier_part> ] ]* }
+rule simple_comment_introducer { <minus_sign> <minus_sign> [ <minus_sign> ]* }
 token comment_character { <nonquote_character> || <quote> }
 token newline { \n }
 rule bracketed_comment_introducer { <slash> <asterisk> }
-token bracketed_comment_contents { [ [[ [ <comment_character> || <separator> ] ]* ] ]? }
+token bracketed_comment_contents { [ [ <comment_character> || <separator> ] ]* }
 rule bracketed_comment_terminator { <asterisk> <slash> }
 rule Unicode_escape_character { '\w(15-18' 'above).' }
 rule date_value { <years_value> <minus_sign> <months_value> <minus_sign> <days_value> }
@@ -585,33 +582,5 @@ token seconds_fraction { <unsigned_integer> }
 rule window_frame_following { <unsigned_value_specification> 'FOLLOWING' }
 token simple_Latin_upper_case_letter { 'A' || 'B' || 'C' || 'D' || 'E' || 'F' || 'G' || 'H' || 'I' || 'J' || 'K' || 'L' || 'M' || 'N' || 'O' || 'P' || 'Q' || 'R' || 'S' || 'T' || 'U' || 'V' || 'W' || 'X' || 'Y' || 'Z' }
 token simple_Latin_lower_case_letter { 'a' || 'b' || 'c' || 'd' || 'e' || 'f' || 'g' || 'h' || 'i' || 'j' || 'k' || 'l' || 'm' || 'n' || 'o' || 'p' || 'q' || 'r' || 's' || 't' || 'u' || 'v' || 'w' || 'x' || 'y' || 'z' }
+}
 
-=begin pod
-
-=head1 NAME
-
-SQL::Grammar - blah blah blah
-
-=head1 SYNOPSIS
-
-=begin code :lang<perl6>
-
-use SQL::Grammar;
-
-=end code
-
-=head1 DESCRIPTION
-
-SQL::Grammar is ...
-
-=head1 AUTHOR
-
-Stefan Seifert <nine@detonation.org>
-
-=head1 COPYRIGHT AND LICENSE
-
-Copyright 2019 Stefan Seifert
-
-This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
-
-=end pod
